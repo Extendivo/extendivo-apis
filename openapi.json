@@ -1,0 +1,2305 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Extendivo API Services",
+    "version": "1.0.0",
+    "description": "Reliable APIs for autonomous AI agents. Safe web fetching, prompt-injection detection, API contract validation and cryptographic change detection. Pay per request using x402 on Base.",
+    "contact": {
+      "name": "Extendivo",
+      "email": "hello@extendivo.com",
+      "url": "https://extendivo.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.extendivo.com"
+    }
+  ],
+  "paths": {
+    "/v1/safe-fetch": {
+      "post": {
+        "operationId": "safeFetch",
+        "summary": "Safely fetch and extract a public URL",
+        "description": "Fetches a public HTTP or HTTPS URL with SSRF  protection and returns clean text, metadata, links and local risk  signals. Price: 0.005 USDC per request via x402 on Base.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FetchRequest"
+              },
+              "example": {
+                "url": "https://www.w3.org/"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful fetch",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SafeFetchResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "x402 payment required. Read the  PAYMENT-REQUIRED response header, create the payment authorization, then  retry with PAYMENT-SIGNATURE."
+          },
+          "400": {
+            "description": "Invalid request or URL"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        },
+        "x-x402-price": "0.005 USDC",
+        "x-x402-network": "eip155:8453",
+        "security": []
+      },
+      "servers": [
+        {
+          "url": "https://api.extendivo.com"
+        }
+      ]
+    },
+    "/v1/safe-fetch-secure": {
+      "post": {
+        "operationId": "safeFetchSecure",
+        "summary": "Safely fetch a URL and detect prompt injection",
+        "description": "Fetches a public HTTP or HTTPS URL with SSRF  protection, clean extraction, local risk analysis and semantic  prompt-injection detection for AI agents. Price: 0.015 USDC per request  via x402 on Base.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FetchRequest"
+              },
+              "example": {
+                "url": "https://www.w3.org/"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful secure fetch",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SafeFetchSecureResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "x402 payment required. Read the  PAYMENT-REQUIRED response header, create the payment authorization, then  retry with PAYMENT-SIGNATURE."
+          },
+          "400": {
+            "description": "Invalid request or URL"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "503": {
+            "description": "Semantic security analysis or payment  verification temporarily unavailable"
+          }
+        },
+        "x-x402-price": "0.015 USDC",
+        "x-x402-network": "eip155:8453",
+        "security": []
+      },
+      "servers": [
+        {
+          "url": "https://api.extendivo.com"
+        }
+      ]
+    },
+    "/v1/contract-guard": {
+      "post": {
+        "operationId": "contractGuardAnalyze",
+        "summary": "Validate API requests before payment",
+        "tags": [
+          "ContractGuard"
+        ],
+        "description": "Performs partial validation against supplied OpenAPI contracts and optional x402 payment requirements. UNKNOWN does not imply that a request is valid or safe to pay.",
+        "x-payment-info": {
+          "protocol": "x402",
+          "version": 2,
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "currency": "USDC",
+          "price": "0.002",
+          "amount": "2000",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0x184e1e665199dfb6776b737e4459c8df7c891576"
+        },
+        "parameters": [
+          {
+            "name": "PAYMENT-SIGNATURE",
+            "in": "header",
+            "required": false,
+            "description": "Base64-encoded x402 v2 payment payload, required for paid execution.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalysisRequest"
+              },
+              "example": {
+                "request": {
+                  "endpoint_url": "https://example.com/v1/search",
+                  "method": "GET"
+                },
+                "openapi": {
+                  "openapi": "3.1.0",
+                  "info": {
+                    "title": "Example API",
+                    "version": "1.0.0"
+                  },
+                  "paths": {
+                    "/v1/search": {
+                      "get": {
+                        "parameters": [
+                          {
+                            "name": "query",
+                            "in": "query",
+                            "required": true,
+                            "schema": {
+                              "type": "string"
+                            }
+                          }
+                        ],
+                        "responses": {
+                          "200": {
+                            "description": "Success"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Analysis completed and payment settled.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64-encoded x402 settlement response.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisResponse"
+                },
+                "example": {
+                  "status": "INVALID",
+                  "payment": {
+                    "status": "UNKNOWN",
+                    "version": null,
+                    "errors": [
+                      "Payment requirements not provided."
+                    ],
+                    "safe_to_pay": false
+                  },
+                  "request_validation": {
+                    "valid": false,
+                    "missing_parameters": [
+                      "query.query"
+                    ],
+                    "errors": [
+                      "Required request parameters are missing."
+                    ]
+                  },
+                  "repair": {
+                    "possible": false,
+                    "required_action": "Provide: query.query"
+                  },
+                  "safe_to_pay": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid JSON or request structure."
+          },
+          "402": {
+            "description": "Payment required, invalid payment or unsuccessful settlement.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "description": "Base64-encoded x402 v2 payment requirements.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Only POST is supported."
+          },
+          "413": {
+            "description": "Request exceeds 2 MiB."
+          },
+          "415": {
+            "description": "Content-Type must be application/json."
+          },
+          "429": {
+            "description": "Rate limit exceeded.",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Contract analysis failed."
+          },
+          "503": {
+            "description": "Service or payment facilitator temporarily unavailable."
+          }
+        },
+        "security": [
+          {
+            "x402Payment": []
+          }
+        ]
+      },
+      "servers": [
+        {
+          "url": "https://api.extendivo.com"
+        }
+      ]
+    },
+    "/v1/change-proof": {
+      "post": {
+        "operationId": "changeProof",
+        "summary": "Detect and prove content changes",
+        "tags": [
+          "Change Detection",
+          "API Monitoring",
+          "Cryptographic Proof"
+        ],
+        "description": "Create a baseline snapshot or compare against a previous snapshot. Snapshots are retained for 30 days. Maximum upstream response size is 2 MiB. HTML is normalized to text. JSON, XML and YAML are compared as raw content. Monitoring is request-driven. Signed proofs attest to observations made by Extendivo, not independent timestamps.",
+        "x-payment-info": {
+          "protocol": "x402",
+          "version": 2,
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "currency": "USDC",
+          "price": "0.003",
+          "amount": "3000",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0x1327165d696943f4018819B5329F717B02c1E9Cc",
+          "maxTimeoutSeconds": 120
+        },
+        "security": [
+          {
+            "x402Payment": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeProofRequest"
+              },
+              "example": {
+                "url": "https://api.extendivo.com/contract-guard/openapi.json"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful paid request.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeProofResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request or blocked URL."
+          },
+          "402": {
+            "description": "Payment required or verification failed.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentRequired"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Previous snapshot not found or expired."
+          },
+          "405": {
+            "description": "Only POST is supported."
+          },
+          "413": {
+            "description": "Request exceeds 16 KiB."
+          },
+          "415": {
+            "description": "JSON content type required."
+          },
+          "422": {
+            "description": "Unsupported content or response exceeds 2 MiB."
+          },
+          "429": {
+            "description": "Rate limit exceeded: 30 requests/min/IP, 120 globally.",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error."
+          },
+          "502": {
+            "description": "Upstream fetch or redirect failed."
+          },
+          "503": {
+            "description": "Service unavailable or settlement unconfirmed. Do not submit a new payment if retry_with_new_payment is false.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "servers": [
+        {
+          "url": "https://api.extendivo.com"
+        }
+      ]
+    },
+    "/change-proof/public-key.json": {
+      "get": {
+        "operationId": "getChangeProofPublicKey",
+        "summary": "Retrieve official Ed25519 public key",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Public signing key. Free access.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicKey"
+                }
+              }
+            }
+          }
+        }
+      },
+      "servers": [
+        {
+          "url": "https://api.extendivo.com"
+        }
+      ]
+    },
+    "/v1/result-guard": {
+      "post": {
+        "operationId": "resultGuard",
+        "summary": "Validate API response data",
+        "tags": [
+          "JSON Schema",
+          "Response Validation",
+          "Data Quality",
+          "AI Agents"
+        ],
+        "description": "Validate any JSON value against a supplied JSON Schema Draft 2020-12 document. Supports local JSON Pointer references. External, cyclic and dynamic references are not supported. Maximum schema size: 64 KiB. Maximum data size: 256 KiB. Maximum request size: 324 KiB. Validation runs in an isolated process with a 3-second timeout and 64 MiB memory limit. VALID, INVALID and WARNING results are paid responses. ERROR results do not initiate settlement.",
+        "x-payment-info": {
+          "protocol": "x402",
+          "version": 2,
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "currency": "USDC",
+          "price": "0.003",
+          "amount": "3000",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0x611bf7169F858A6709b554EbB49cBb0564C48b8E",
+          "maxTimeoutSeconds": 120
+        },
+        "security": [
+          {
+            "x402Payment": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResultGuardRequest"
+              },
+              "example": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "price"
+                  ],
+                  "properties": {
+                    "price": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "data": {
+                  "price": 100
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully completed paid validation.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultGuardResponse"
+                },
+                "examples": {
+                  "valid": {
+                    "value": {
+                      "status": "VALID",
+                      "schema_valid": true,
+                      "empty_response": false,
+                      "error_count": 0,
+                      "errors": [],
+                      "warnings": [],
+                      "data_modified": false,
+                      "fact_checked": false
+                    }
+                  },
+                  "invalid": {
+                    "value": {
+                      "status": "INVALID",
+                      "schema_valid": false,
+                      "empty_response": false,
+                      "error_count": 1,
+                      "errors": [
+                        {
+                          "path": "/price",
+                          "message": "The data (string) must match the type: number"
+                        }
+                      ],
+                      "warnings": [],
+                      "data_modified": false,
+                      "fact_checked": false
+                    }
+                  },
+                  "warning": {
+                    "value": {
+                      "status": "WARNING",
+                      "schema_valid": true,
+                      "empty_response": true,
+                      "error_count": 0,
+                      "errors": [],
+                      "warnings": [
+                        "EMPTY_RESPONSE"
+                      ],
+                      "data_modified": false,
+                      "fact_checked": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid JSON or request structure."
+          },
+          "402": {
+            "description": "Payment required or verification failed.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultGuardPaymentRequired"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Only POST is supported.",
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "const": "POST"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request, schema or data size limit exceeded."
+          },
+          "415": {
+            "description": "Application/json content type required."
+          },
+          "422": {
+            "description": "Invalid schema, unsupported schema feature or validation resource limit exceeded. Settlement is not initiated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultGuardErrorResponse"
+                },
+                "example": {
+                  "status": "ERROR",
+                  "error": "INVALID_SCHEMA"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded: 30 requests/min/IP, 120 globally.",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error."
+          },
+          "503": {
+            "description": "Service unavailable or settlement unconfirmed. Do not submit a new payment if retry_with_new_payment is false.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultGuardErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/safe-doc": {
+      "post": {
+        "operationId": "safeDoc",
+        "summary": "Securely extract text and metadata from a PDF",
+        "tags": [
+          "PDF",
+          "Document Extraction",
+          "AI Agents"
+        ],
+        "description": "Fetch and extract text from public PDF documents with SSRF protection, redirect validation, SHA-256 fingerprinting and PDF metadata extraction. Maximum 2 MiB, 20 pages and 30,000 text characters. OCR is not supported. Paid execution uses x402 v2 on Base Mainnet.",
+        "x-payment-info": {
+          "protocol": "x402",
+          "version": 2,
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "currency": "USDC",
+          "price": "0.010",
+          "amount": "10000",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0x1b8c0bf41753708b2965f742f5c41e203f37ddfc",
+          "maxTimeoutSeconds": 120
+        },
+        "security": [
+          {
+            "x402Payment": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SafeDocRequest"
+              },
+              "example": {
+                "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Paid PDF extraction completed successfully.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SafeDocResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid JSON or missing/invalid URL."
+          },
+          "402": {
+            "description": "x402 payment required or verification failed.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Only POST is supported."
+          },
+          "409": {
+            "description": "Payment reference already processed."
+          },
+          "413": {
+            "description": "Request or PDF size limit exceeded."
+          },
+          "415": {
+            "description": "Unsupported content type."
+          },
+          "429": {
+            "description": "Rate limit exceeded."
+          },
+          "500": {
+            "description": "Unexpected server error."
+          },
+          "503": {
+            "description": "Service unavailable or settlement unconfirmed. Do not automatically retry payment."
+          }
+        }
+      }
+    },
+    "/v1/data-shape": {
+      "post": {
+        "operationId": "dataShape",
+        "summary": "Transform JSON using explicit schema mappings",
+        "description": "Deterministic JSON transformation with JSON Pointer field mappings, safe type conversion, nested objects, arrays and JSON Schema validation. No AI inference or invented values. Payment is required through x402 on Base Mainnet.",
+        "tags": [
+          "JSON Transformation",
+          "Data Normalization",
+          "AI Agents"
+        ],
+        "security": [
+          {
+            "x402Payment": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DataShapeRequest"
+              },
+              "example": {
+                "data": {
+                  "full_name": "John Smith",
+                  "age": "42"
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "age": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "age"
+                  ]
+                },
+                "mapping": {
+                  "/name": "/full_name",
+                  "/age": "/age"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Paid transformation completed. Validation status is included in the response.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataShapeResponse"
+                },
+                "example": {
+                  "status": "VALID",
+                  "valid": true,
+                  "data": {
+                    "name": "John Smith",
+                    "age": 42
+                  },
+                  "missing_fields": [],
+                  "converted_fields": [
+                    "/age"
+                  ],
+                  "errors": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid JSON or request structure."
+          },
+          "402": {
+            "description": "Payment required or verification failed.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Only POST is supported."
+          },
+          "409": {
+            "description": "Payment already reserved or request does not match the previously paid request."
+          },
+          "413": {
+            "description": "Request size limit exceeded."
+          },
+          "415": {
+            "description": "Application/json required."
+          },
+          "422": {
+            "description": "Invalid transformation request."
+          },
+          "429": {
+            "description": "Rate limit exceeded."
+          },
+          "503": {
+            "description": "Service unavailable or payment settlement unconfirmed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataShapeErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/agent-route": {
+      "post": {
+        "operationId": "agentRoute",
+        "summary": "Find an Extendivo API by required capabilities",
+        "description": "Requires all supplied capabilities. A match costs 0.001 USDC on Base. Supported capabilities: change-proof, contract-guard, data-shape, fetch, json-transformation, result-guard, safe-doc, safe-fetch, safe-fetch-secure, schema-mapping, secure-fetch. Selects the lowest listed price among matching Extendivo APIs. Returns payment details, selection rationale and alternative routes. Prices are catalog-based, not live quotes.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "capabilities"
+                ],
+                "properties": {
+                  "capabilities": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 32,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              },
+              "example": {
+                "capabilities": [
+                  "fetch"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Selected route",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "method": {
+                      "type": "string"
+                    },
+                    "endpoint": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "capabilities": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "payment": {
+                      "type": "object",
+                      "required": [
+                        "amount",
+                        "currency",
+                        "decimals",
+                        "network",
+                        "asset"
+                      ],
+                      "properties": {
+                        "amount": {
+                          "type": "string",
+                          "pattern": "^[0-9]+$"
+                        },
+                        "currency": {
+                          "type": "string",
+                          "enum": [
+                            "USDC"
+                          ]
+                        },
+                        "decimals": {
+                          "type": "integer",
+                          "enum": [
+                            6
+                          ]
+                        },
+                        "network": {
+                          "type": "string",
+                          "enum": [
+                            "eip155:8453"
+                          ]
+                        },
+                        "asset": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "selection": {
+                      "type": "object",
+                      "required": [
+                        "strategy",
+                        "scope",
+                        "matched_capabilities",
+                        "matching_routes",
+                        "reason"
+                      ],
+                      "properties": {
+                        "strategy": {
+                          "type": "string",
+                          "enum": [
+                            "lowest_price"
+                          ]
+                        },
+                        "scope": {
+                          "type": "string",
+                          "enum": [
+                            "extendivo_catalog"
+                          ]
+                        },
+                        "matched_capabilities": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "matching_routes": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "reason": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "alternatives": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "method": {
+                            "type": "string"
+                          },
+                          "endpoint": {
+                            "type": "string",
+                            "format": "uri"
+                          },
+                          "capabilities": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "payment": {
+                            "type": "object",
+                            "required": [
+                              "amount",
+                              "currency",
+                              "decimals",
+                              "network",
+                              "asset"
+                            ],
+                            "properties": {
+                              "amount": {
+                                "type": "string",
+                                "pattern": "^[0-9]+$"
+                              },
+                              "currency": {
+                                "type": "string",
+                                "enum": [
+                                  "USDC"
+                                ]
+                              },
+                              "decimals": {
+                                "type": "integer",
+                                "enum": [
+                                  6
+                                ]
+                              },
+                              "network": {
+                                "type": "string",
+                                "enum": [
+                                  "eip155:8453"
+                                ]
+                              },
+                              "asset": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "endpoint",
+                          "method",
+                          "capabilities",
+                          "payment"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "endpoint",
+                    "method",
+                    "capabilities",
+                    "payment",
+                    "selection",
+                    "alternatives"
+                  ]
+                },
+                "example": {
+                  "name": "safe-fetch",
+                  "endpoint": "https://api.extendivo.com/v1/safe-fetch",
+                  "method": "POST",
+                  "capabilities": [
+                    "safe-fetch",
+                    "fetch"
+                  ],
+                  "payment": {
+                    "amount": "5000",
+                    "currency": "USDC",
+                    "decimals": 6,
+                    "network": "eip155:8453",
+                    "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+                  },
+                  "selection": {
+                    "strategy": "lowest_price",
+                    "scope": "extendivo_catalog",
+                    "matched_capabilities": [
+                      "fetch"
+                    ],
+                    "matching_routes": 2,
+                    "reason": "Lowest listed price among matching routes"
+                  },
+                  "alternatives": [
+                    {
+                      "name": "safe-fetch-secure",
+                      "endpoint": "https://api.extendivo.com/v1/safe-fetch-secure",
+                      "method": "POST",
+                      "capabilities": [
+                        "safe-fetch-secure",
+                        "fetch",
+                        "secure-fetch"
+                      ],
+                      "payment": {
+                        "amount": "15000",
+                        "currency": "USDC",
+                        "decimals": 6,
+                        "network": "eip155:8453",
+                        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "x402 payment required"
+          },
+          "404": {
+            "description": "No matching route"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "409": {
+            "description": "Payment replay conflict or payment identity already reserved"
+          },
+          "503": {
+            "description": "Service or payment processing temporarily unavailable"
+          }
+        },
+        "x-x402-price": "0.001 USDC",
+        "x-x402-network": "eip155:8453",
+        "security": [
+          {
+            "x402Payment": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "FetchRequest": {
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Public HTTP or HTTPS URL to fetch."
+          }
+        },
+        "additionalProperties": false
+      },
+      "LocalRisk": {
+        "type": "object",
+        "properties": {
+          "risk_score": {
+            "type": "integer"
+          },
+          "prompt_injection": {
+            "type": "boolean"
+          },
+          "risk_level": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ]
+          },
+          "signals": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "risk_score",
+          "prompt_injection",
+          "risk_level",
+          "signals"
+        ]
+      },
+      "SemanticRisk": {
+        "type": "object",
+        "properties": {
+          "prompt_injection": {
+            "type": "boolean"
+          },
+          "risk_level": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ]
+          },
+          "confidence": {
+            "type": "number"
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "explanation": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "prompt_injection",
+          "risk_level",
+          "confidence",
+          "categories",
+          "explanation"
+        ]
+      },
+      "CombinedRisk": {
+        "type": "object",
+        "properties": {
+          "prompt_injection": {
+            "type": "boolean"
+          },
+          "risk_level": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ]
+          },
+          "confidence": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "local",
+              "semantic"
+            ]
+          }
+        },
+        "required": [
+          "prompt_injection",
+          "risk_level",
+          "confidence",
+          "source"
+        ]
+      },
+      "SafeFetchResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "requested_url": {
+            "type": "string"
+          },
+          "final_url": {
+            "type": "string"
+          },
+          "redirects": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "from": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "to": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "status": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "from",
+                "to",
+                "status"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "host": {
+            "type": "string"
+          },
+          "resolved_ip": {
+            "type": "string"
+          },
+          "http_status": {
+            "type": "integer"
+          },
+          "content_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "bytes": {
+            "type": "integer"
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "canonical": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "robots": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "links": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "risk": {
+            "$ref": "#/components/schemas/LocalRisk"
+          },
+          "preview": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "requested_url",
+          "final_url",
+          "redirects",
+          "host",
+          "resolved_ip",
+          "http_status",
+          "content_type",
+          "bytes",
+          "title",
+          "description",
+          "canonical",
+          "robots",
+          "content",
+          "links",
+          "risk",
+          "preview"
+        ]
+      },
+      "SafeFetchSecureResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/SafeFetchResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "semantic_risk": {
+                "$ref": "#/components/schemas/SemanticRisk"
+              },
+              "combined_risk": {
+                "$ref": "#/components/schemas/CombinedRisk"
+              }
+            },
+            "required": [
+              "semantic_risk",
+              "combined_risk"
+            ]
+          }
+        ]
+      },
+      "AnalysisRequest": {
+        "type": "object",
+        "required": [
+          "request",
+          "openapi"
+        ],
+        "properties": {
+          "request": {
+            "$ref": "#/components/schemas/ProposedRequest"
+          },
+          "openapi": {
+            "type": "object",
+            "description": "Supplied OpenAPI contract. Validation coverage is partial."
+          },
+          "payment_required": {
+            "type": "object",
+            "description": "Optional decoded x402 v1 or v2 payment requirements of the target API."
+          }
+        }
+      },
+      "ProposedRequest": {
+        "type": "object",
+        "required": [
+          "endpoint_url",
+          "method"
+        ],
+        "properties": {
+          "endpoint_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "method": {
+            "type": "string",
+            "example": "GET"
+          },
+          "query": {
+            "type": "object"
+          },
+          "headers": {
+            "type": "object"
+          },
+          "body": {}
+        }
+      },
+      "AnalysisResponse": {
+        "type": "object",
+        "required": [
+          "status",
+          "payment",
+          "request_validation",
+          "repair",
+          "safe_to_pay"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "INVALID",
+              "UNKNOWN"
+            ]
+          },
+          "payment": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "INVALID",
+                  "UNKNOWN"
+                ]
+              },
+              "version": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "errors": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "safe_to_pay": {
+                "const": false
+              }
+            }
+          },
+          "request_validation": {
+            "type": "object",
+            "properties": {
+              "valid": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "missing_parameters": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "errors": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "repair": {
+            "type": "object",
+            "properties": {
+              "possible": {
+                "type": "boolean"
+              },
+              "required_action": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "repaired_request": {
+                "$ref": "#/components/schemas/ProposedRequest"
+              },
+              "changes": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "safe_to_pay": {
+            "const": false,
+            "description": "The current version does not certify payment safety."
+          }
+        }
+      },
+      "ChangeProofRequest": {
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 4096,
+            "description": "Public HTTP or HTTPS URL. No credentials or non-standard ports."
+          },
+          "previous_snapshot_id": {
+            "type": "string",
+            "pattern": "^cp_[a-f0-9]{64}$",
+            "description": "Omit for baseline. Supply for comparison. URL must match the original snapshot."
+          }
+        }
+      },
+      "Sha256": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{64}$"
+      },
+      "Snapshot": {
+        "type": "object",
+        "required": [
+          "snapshot_id",
+          "url",
+          "final_url",
+          "checked_at",
+          "http_status",
+          "content_type",
+          "normalization",
+          "raw_sha256",
+          "content_sha256",
+          "raw_bytes",
+          "content_bytes"
+        ],
+        "properties": {
+          "snapshot_id": {
+            "type": "string",
+            "pattern": "^cp_[a-f0-9]{64}$"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "final_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "checked_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "http_status": {
+            "type": "integer"
+          },
+          "content_type": {
+            "type": "string"
+          },
+          "normalization": {
+            "type": "string"
+          },
+          "raw_sha256": {
+            "$ref": "#/components/schemas/Sha256"
+          },
+          "content_sha256": {
+            "$ref": "#/components/schemas/Sha256"
+          },
+          "raw_bytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "content_bytes": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "Comparison": {
+        "type": "object",
+        "required": [
+          "changed",
+          "raw_changed",
+          "content_changed",
+          "content_type_changed",
+          "normalization_changed",
+          "final_url_changed"
+        ],
+        "properties": {
+          "changed": {
+            "type": "boolean"
+          },
+          "raw_changed": {
+            "type": "boolean"
+          },
+          "content_changed": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "content_type_changed": {
+            "type": "boolean"
+          },
+          "normalization_changed": {
+            "type": "boolean"
+          },
+          "final_url_changed": {
+            "type": "boolean"
+          },
+          "previous_raw_sha256": {
+            "$ref": "#/components/schemas/Sha256"
+          },
+          "current_raw_sha256": {
+            "$ref": "#/components/schemas/Sha256"
+          },
+          "previous_content_sha256": {
+            "$ref": "#/components/schemas/Sha256"
+          },
+          "current_content_sha256": {
+            "$ref": "#/components/schemas/Sha256"
+          },
+          "raw_bytes_delta": {
+            "type": "integer"
+          },
+          "content_bytes_delta": {
+            "type": "integer"
+          }
+        }
+      },
+      "DiffChange": {
+        "type": "object",
+        "required": [
+          "type",
+          "before",
+          "after",
+          "before_bytes",
+          "after_bytes",
+          "truncated"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "added",
+              "removed",
+              "modified"
+            ]
+          },
+          "before": {
+            "type": "string"
+          },
+          "after": {
+            "type": "string"
+          },
+          "before_bytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "after_bytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "truncated": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Diff": {
+        "type": "object",
+        "description": "Bounded diff. Maximum 30 changes and 1024 bytes per excerpt. Region mode combines larger changes.",
+        "required": [
+          "mode",
+          "changes",
+          "truncated"
+        ],
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "none",
+              "token",
+              "region",
+              "unavailable"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "changes": {
+            "type": "array",
+            "maxItems": 30,
+            "items": {
+              "$ref": "#/components/schemas/DiffChange"
+            }
+          },
+          "truncated": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Proof": {
+        "type": "object",
+        "description": "Fetch the trusted key at https://api.extendivo.com/change-proof/public-key.json. Decode signed_payload and signature from Base64. Verify the exact payload bytes with Ed25519. Check issuer, schema and key_id. Compare signed claims with the response excluding proof.",
+        "required": [
+          "version",
+          "algorithm",
+          "key_id",
+          "public_key",
+          "payload_encoding",
+          "signed_payload",
+          "signature"
+        ],
+        "properties": {
+          "version": {
+            "const": "1.0"
+          },
+          "algorithm": {
+            "const": "Ed25519"
+          },
+          "key_id": {
+            "$ref": "#/components/schemas/Sha256"
+          },
+          "public_key": {
+            "type": "string",
+            "contentEncoding": "base64"
+          },
+          "payload_encoding": {
+            "const": "base64"
+          },
+          "signed_payload": {
+            "type": "string",
+            "contentEncoding": "base64"
+          },
+          "signature": {
+            "type": "string",
+            "contentEncoding": "base64"
+          }
+        }
+      },
+      "PublicKey": {
+        "type": "object",
+        "required": [
+          "service",
+          "issuer",
+          "schema",
+          "algorithm",
+          "key_id",
+          "public_key",
+          "encoding"
+        ],
+        "properties": {
+          "service": {
+            "const": "Extendivo ChangeProof"
+          },
+          "issuer": {
+            "const": "https://api.extendivo.com"
+          },
+          "schema": {
+            "const": "extendivo-change-proof-v1"
+          },
+          "algorithm": {
+            "const": "Ed25519"
+          },
+          "key_id": {
+            "$ref": "#/components/schemas/Sha256"
+          },
+          "public_key": {
+            "type": "string",
+            "contentEncoding": "base64"
+          },
+          "encoding": {
+            "const": "base64"
+          }
+        }
+      },
+      "ChangeProofResponse": {
+        "type": "object",
+        "required": [
+          "success",
+          "service",
+          "mode",
+          "changed",
+          "current",
+          "previous",
+          "comparison",
+          "diff",
+          "redirects",
+          "proof"
+        ],
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "service": {
+            "const": "Extendivo ChangeProof"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "baseline",
+              "compare"
+            ]
+          },
+          "changed": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "current": {
+            "$ref": "#/components/schemas/Snapshot"
+          },
+          "previous": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Snapshot"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "comparison": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Comparison"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "diff": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Diff"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "redirects": {
+            "type": "array",
+            "maxItems": 5,
+            "items": {
+              "type": "object",
+              "required": [
+                "from",
+                "to",
+                "status"
+              ],
+              "properties": {
+                "from": {
+                  "type": "string"
+                },
+                "to": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "proof": {
+            "$ref": "#/components/schemas/Proof"
+          }
+        }
+      },
+      "PaymentRequired": {
+        "type": "object",
+        "required": [
+          "x402Version",
+          "resource",
+          "accepts"
+        ],
+        "properties": {
+          "x402Version": {
+            "const": 2
+          },
+          "error": {
+            "type": "string"
+          },
+          "resource": {
+            "type": "object"
+          },
+          "accepts": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "extensions": {
+            "type": "object"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "payment_reference": {
+            "type": "string"
+          },
+          "retry_with_new_payment": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ResultGuardRequest": {
+        "type": "object",
+        "required": [
+          "schema",
+          "data"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "schema": {
+            "type": [
+              "object",
+              "boolean"
+            ],
+            "description": "JSON Schema Draft 2020-12. Maximum 64 KiB after JSON encoding. Maximum schema depth: 32. Maximum schema nodes: 500. Nested schema IDs, external, cyclic and dynamic references are not supported."
+          },
+          "data": {
+            "description": "API response to validate. Accepts any JSON value, including null, false and zero. Maximum 256 KiB after JSON encoding."
+          }
+        }
+      },
+      "ValidationError": {
+        "type": "object",
+        "required": [
+          "path",
+          "message"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Validation error location. Root location is represented by /."
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "ResultGuardResponse": {
+        "type": "object",
+        "required": [
+          "status",
+          "schema_valid",
+          "empty_response",
+          "error_count",
+          "errors",
+          "warnings",
+          "data_modified",
+          "fact_checked"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "VALID",
+              "INVALID",
+              "WARNING"
+            ]
+          },
+          "schema_valid": {
+            "type": "boolean",
+            "description": "Whether the supplied data satisfies the schema."
+          },
+          "empty_response": {
+            "type": "boolean",
+            "description": "True for null, empty objects, empty arrays or blank strings."
+          },
+          "error_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 20,
+            "description": "Number of returned validation errors, not necessarily the total number of violations."
+          },
+          "errors": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "EMPTY_RESPONSE"
+              ]
+            }
+          },
+          "data_modified": {
+            "const": false
+          },
+          "fact_checked": {
+            "const": false
+          }
+        }
+      },
+      "ResultGuardPaymentRequired": {
+        "type": "object",
+        "required": [
+          "x402Version",
+          "resource",
+          "accepts"
+        ],
+        "properties": {
+          "x402Version": {
+            "const": 2
+          },
+          "error": {
+            "type": "string"
+          },
+          "resource": {
+            "type": "object"
+          },
+          "accepts": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "extensions": {
+            "type": "object"
+          }
+        }
+      },
+      "ResultGuardErrorResponse": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "status": {
+            "const": "ERROR"
+          },
+          "error": {
+            "type": "string"
+          },
+          "payment_reference": {
+            "type": "string"
+          },
+          "retry_with_new_payment": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SafeDocRequest": {
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 2048,
+            "description": "Public HTTP/HTTPS PDF URL. Maximum PDF size: 2 MiB."
+          }
+        }
+      },
+      "SafeDocResponse": {
+        "type": "object",
+        "required": [
+          "status",
+          "format",
+          "size_bytes",
+          "sha256",
+          "pages",
+          "text",
+          "text_truncated",
+          "metadata",
+          "warnings",
+          "source_url",
+          "redirects"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "OK"
+          },
+          "format": {
+            "type": "string",
+            "const": "pdf"
+          },
+          "size_bytes": {
+            "type": "integer"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "pages": {
+            "type": "integer"
+          },
+          "text": {
+            "type": "string"
+          },
+          "text_truncated": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "author": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "creator": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "producer": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "source_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "redirects": {
+            "type": "array",
+            "items": {}
+          }
+        }
+      },
+      "DataShapeRequest": {
+        "type": "object",
+        "required": [
+          "data",
+          "schema",
+          "mapping"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "description": "Source JSON data to transform."
+          },
+          "schema": {
+            "type": "object",
+            "description": "Target JSON Schema."
+          },
+          "mapping": {
+            "type": "object",
+            "description": "Explicit JSON Pointer mappings. Keys are target paths, values are source paths.",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "DataShapeResponse": {
+        "type": "object",
+        "required": [
+          "status",
+          "valid",
+          "data",
+          "missing_fields",
+          "converted_fields",
+          "errors"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "VALID",
+              "INVALID",
+              "WARNING"
+            ]
+          },
+          "valid": {
+            "type": "boolean"
+          },
+          "data": {
+            "description": "Transformed JSON output."
+          },
+          "missing_fields": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "target": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "converted_fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "errors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "DataShapeErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "payment_reference": {
+            "type": "string"
+          },
+          "retry_with_new_payment": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "x402Payment": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "PAYMENT-SIGNATURE",
+        "description": "Base64-encoded x402 v2 payment payload. Required for paid execution. Requests without payment receive HTTP 402."
+      }
+    }
+  }
+}
